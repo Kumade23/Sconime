@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="referrer" content="no-referrer">
+<title>Sconime</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css?v=11">
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js"></script>
+</head>
+<body>
+
+<!-- ======================= NAVBAR ======================= -->
+<header class="nav" id="nav">
+  <div class="nav-inner">
+    <nav class="nav-links">
+      <a href="#/" data-route="home" data-focusable>Home</a>
+      <a href="#/favorites" data-route="favorites" data-focusable>Preferiti</a>
+      <a href="#/continue" data-route="continue" data-focusable>Continua a guardare</a>
+    </nav>
+    <a href="#/settings" class="icon-btn" data-route="settings" title="Impostazioni" data-focusable aria-label="Impostazioni">
+      <svg viewBox="0 0 24 24" class="ic"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.6 7.6 0 0 0-1.7-1L14.9 3h-4l-.4 2.6a7.6 7.6 0 0 0-1.7 1l-2.4-1-2 3.4L6.4 11a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.6 7.6 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.6 7.6 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z" fill="currentColor"/></svg>
+    </a>
+    <button id="themeToggle" class="icon-btn" title="Tema" data-focusable aria-label="Cambia tema">
+      <svg viewBox="0 0 24 24" class="ic"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z" fill="currentColor"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="view" class="view"></main>
+
+<!-- ======================= TEMPLATES ======================= -->
+
+<!-- HOME -->
+<template id="tpl-home">
+  <section class="hero">
+    <div class="hero-brand"><span class="brand-dot"></span>Sconime</div>
+    <div class="search-wrap">
+      <div class="search-box" data-focusable>
+        <svg viewBox="0 0 24 24" class="ic search-ic"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input id="searchInput" type="text" placeholder="Cerca un anime…" autocomplete="off" spellcheck="false">
+        <button class="clear-btn" id="clearSearch" aria-label="Pulisci">&times;</button>
+      </div>
+    </div>
+  </section>
+  <section class="results" id="searchResults"></section>
+</template>
+
+<!-- DETTAGLIO ANIME -->
+<template id="tpl-anime">
+  <div class="detail" id="detailRoot"></div>
+</template>
+
+<!-- WATCH / PLAYER -->
+<template id="tpl-watch">
+  <div class="watch" id="watchRoot"></div>
+</template>
+
+<!-- LISTA (preferiti / continua) -->
+<template id="tpl-list">
+  <section class="page">
+    <h1 class="page-title" id="listTitle"></h1>
+    <div class="grid" id="listGrid"></div>
+    <div class="empty" id="listEmpty" hidden>
+      <div class="empty-art">🎬</div>
+      <h2 id="listEmptyTitle">Niente qui</h2>
+      <p id="listEmptyText"></p>
+    </div>
+  </section>
+</template>
+
+<!-- IMPOSTAZIONI -->
+<template id="tpl-settings">
+  <section class="page settings">
+    <h1 class="page-title">Impostazioni</h1>
+
+    <div class="card setting-card">
+      <h3>Player</h3>
+      <div class="setting-row">
+        <div><label>Autoplay episodio successivo</label><p>Avvia automaticamente l'episodio seguente.</p></div>
+        <button class="switch" id="setAutoplay" data-focusable role="switch"></button>
+      </div>
+      <div class="setting-row">
+        <div><label>Riprendi da dove eri rimasto</label><p>Ripristina la posizione di visione.</p></div>
+        <button class="switch" id="setResume" data-focusable role="switch"></button>
+      </div>
+      <div class="setting-row">
+        <div><label>Velocità predefinita</label><p>Velocità di riproduzione iniziale.</p></div>
+        <select id="setRate" class="select" data-focusable>
+          <option value="0.5">0.5×</option><option value="0.75">0.75×</option>
+          <option value="1" selected>1×</option><option value="1.25">1.25×</option>
+          <option value="1.5">1.5×</option><option value="2">2×</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <div><label>Qualità predefinita</label><p>Preferenza di qualità video.</p></div>
+        <select id="setQuality" class="select" data-focusable>
+          <option value="auto" selected>Auto</option>
+          <option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card setting-card">
+      <h3>Episodi</h3>
+      <div class="setting-row">
+        <div><label>Episodi per pagina</label><p>Quanti episodi mostrare alla volta nella scheda dell'anime.</p></div>
+        <select id="setEpPerPage" class="select" data-focusable>
+          <option value="10">10</option><option value="20" selected>20</option>
+          <option value="30">30</option><option value="50">50</option>
+          <option value="100">100</option><option value="9999">Tutti</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card setting-card">
+      <h3>Aspetto</h3>
+      <div class="setting-row">
+        <div><label>Tema scuro</label><p>Interfaccia scura.</p></div>
+        <button class="switch" id="setTheme" data-focusable role="switch"></button>
+      </div>
+    </div>
+
+    <div class="card setting-card">
+      <h3>Dati</h3>
+      <div class="setting-row">
+        <div><label>Cronologia visione</label><p id="statHistory">0 elementi</p></div>
+        <button class="btn danger" id="clearHistory" data-focusable>Svuota</button>
+      </div>
+      <div class="setting-row">
+        <div><label>Preferiti</label><p id="statFav">0 elementi</p></div>
+        <button class="btn danger" id="clearFav" data-focusable>Svuota</button>
+      </div>
+    </div>
+
+    <p class="foot">Sconime · streaming via AnimeUnity + VixCloud · il video va diretto al tuo dispositivo</p>
+  </section>
+</template>
+
+<!-- CARD ANIME -->
+<template id="tpl-card">
+  <a class="card anime-card" data-focusable>
+    <div class="card-media">
+      <img loading="lazy" alt="">
+      <div class="card-badges"></div>
+      <div class="card-play">▶</div>
+    </div>
+    <div class="card-body">
+      <div class="card-title"></div>
+      <div class="card-meta"></div>
+    </div>
+  </a>
+</template>
+
+<script src="/static/js/store.js?v=11"></script>
+<script src="/static/js/api.js?v=11"></script>
+<script src="/static/js/ui.js?v=11"></script>
+<script src="/static/js/player.js?v=11"></script>
+<script src="/static/js/tv.js?v=11"></script>
+<script src="/static/js/app.js?v=11"></script>
+</body>
+</html>
