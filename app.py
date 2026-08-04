@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-import requests as _req
+from curl_cffi import requests as _req
 from flask import Flask, jsonify, request, send_from_directory, Response
 
 from providers.animeunity import client, AnimeUnityError, BASE_HEADERS
@@ -134,7 +134,7 @@ def img_proxy():
     elif "anilist" in host or "myanimelist" in host:
         headers["Referer"] = "https://anilist.co/"
     try:
-        r = _req.get(url, headers=headers, timeout=15, verify=False, stream=False)
+        r = _req.get(url, headers=headers, timeout=15, verify=False, stream=False, impersonate="chrome")
         if r.status_code != 200 or "image" not in r.headers.get("Content-Type", ""):
             return _err(f"Upstream {r.status_code}", 404)
         ctype = r.headers.get("Content-Type", "image/jpeg").split(";")[0]
