@@ -17,7 +17,7 @@ import re
 import threading
 import time
 
-from curl_cffi import requests
+import cloudscraper
 
 from parsers import (
     build_playlist_url,
@@ -62,7 +62,7 @@ class AnimeUnityClient:
     """Client con sessione persistente e refresh automatico di cookie/token."""
 
     def __init__(self):
-        self._session = requests.Session(impersonate="chrome")
+        self._session = cloudscraper.create_scraper(browser={'browser': 'chrome', 'platform': 'windows', 'desktop': True})
         self._csrf = None
         self._bootstrapped_at = 0.0
         self._lock = threading.Lock()
